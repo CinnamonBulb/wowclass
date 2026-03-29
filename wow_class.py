@@ -426,7 +426,7 @@ if "step" not in st.session_state:
     st.session_state.history  = []
     st.session_state.finished = False
 
-st.set_page_config(page_title="아제로스 영혼 분석", page_icon="⚔️", layout="centered")
+st.set_page_config(page_title="영혼 색깔 테스트", page_icon="🔮", layout="centered")
 st.markdown("""
 <style>
     .stButton>button{
