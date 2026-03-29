@@ -446,7 +446,7 @@ if not st.session_state.finished:
     q_data = QUESTIONS[st.session_state.step]
     
     st.title("🔮 나의 영혼은 무슨 색일까?")
-    st.caption("12개 다차원 지표로 알아보는 당신의 운명적인 클래스")
+    st.caption("12개 다차원 지표로 알아보는 당신의 운명색 - 가장 당신과 일치하는 모습 또는 선호하는(바라는) 선택지를 골라주세요")
     st.divider()
     st.progress(st.session_state.step / len(QUESTIONS), text=f"진행: {st.session_state.step} / {len(QUESTIONS)}문항 완료")
     st.write("")
