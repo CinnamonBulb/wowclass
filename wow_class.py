@@ -1,154 +1,131 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[1]:
-
-
 import streamlit as st
 import math
 import time
 
-# --- 1. 39개 전문화 8차원 좌표 데이터베이스 (DB) ---
-# Res(책임), Sup(지원), Dist(거리), Log(논리), Agg(공격), Nat(자연), Ord(질서), Shd(이면)
-SPECS_DB = {
-    "보호 성기사": {"Res": 10, "Sup": 5, "Dist": -5, "Log": 5, "Agg": 3, "Nat": 0, "Ord": 10, "Shd": 0},
-    "복원 주술사": {"Res": 3, "Sup": 10, "Dist": 8, "Log": 5, "Agg": 0, "Nat": 10, "Ord": 3, "Shd": 0},
-    "수양 사제": {"Res": 5, "Sup": 8, "Dist": 5, "Log": 10, "Agg": 0, "Nat": 0, "Ord": 8, "Shd": 5},
-    "분노 전사": {"Res": 2, "Sup": 0, "Dist": -10, "Log": 0, "Agg": 10, "Nat": 3, "Ord": 0, "Shd": 5},
-    "비전 마법사": {"Res": 0, "Sup": 0, "Dist": 10, "Log": 10, "Agg": 5, "Nat": 0, "Ord": 8, "Shd": 3},
-    "혈기 죽음의 기사": {"Res": 10, "Sup": 0, "Dist": -5, "Log": 3, "Agg": 7, "Nat": 0, "Ord": 3, "Shd": 10},
-    "조화 드루이드": {"Res": 0, "Sup": 5, "Dist": 10, "Log": 8, "Agg": 3, "Nat": 10, "Ord": 5, "Shd": 0},
-    "양조 수도사": {"Res": 8, "Sup": 5, "Dist": -3, "Log": 7, "Agg": 4, "Nat": 8, "Ord": 5, "Shd": 2},
-    "파괴 흑마법사": {"Res": 2, "Sup": 0, "Dist": 10, "Log": 8, "Agg": 9, "Nat": 0, "Ord": 4, "Shd": 8},
-    # [공간 제약상 주요 9개만 기입, 실제 배포 시 39개 전체 좌표를 이 형식으로 확장 가능합니다]
-}
-
-# --- 2. 20개 정밀 질문지 (가중치 벡터 설계) ---
-QUESTIONS = [
-    {
-        "q": "Q1. 팀의 프로젝트가 위기에 처했을 때, 당신이 가장 먼저 취하는 행동은?",
-        "options": [
-            {"t": "내가 모든 책임을 지고 전면에 나서서 상황을 수습한다.", "w": {"Res": 10, "Ord": 5}},
-            {"t": "팀원들의 정서적 안정을 돕고 협력을 이끌어낸다.", "w": {"Sup": 10, "Nat": 5}},
-            {"t": "문제의 핵심을 파악하기 위해 현장에 즉각 투입된다.", "w": {"Agg": 10, "Dist": -10}},
-            {"t": "데이터를 분석하여 실패 원인과 대안을 논리적으로 정리한다.", "w": {"Log": 10, "Dist": 10}}
-        ]
-    },
-    {
-        "q": "Q2. 당신이 가장 선호하는 업무 환경의 분위기는 어떤가요?",
-        "options": [
-            {"t": "체계적이고 매뉴얼이 확실하며 질서 정연한 곳", "w": {"Ord": 10, "Log": 5}},
-            {"t": "자유롭고 창의적이며 자연스러운 변화가 허용되는 곳", "w": {"Nat": 10, "Dist": 5}},
-            {"t": "목표 지향적이고 경쟁적이며 빠른 결과가 중시되는 곳", "w": {"Agg": 10, "Res": 5}},
-            {"t": "이면의 전략을 중시하고 독립적인 집중이 가능한 곳", "w": {"Shd": 10, "Dist": 10}}
-        ]
-    },
-    {
-        "q": "Q3. 복잡한 가구를 조립하다가 나사가 하나 남았습니다. 당신은?",
-        "options": [
-            {"t": "완벽을 위해 처음부터 다시 해체하고 재조립한다.", "w": {"Ord": 10, "Res": 8}},
-            {"t": "일단 작동에 문제가 없다면 효율을 위해 그냥 사용한다.", "w": {"Agg": 8, "Log": 5}},
-            {"t": "남은 나사의 위치를 통해 어느 단계의 누락인지 역추론한다.", "w": {"Log": 10, "Shd": 5}},
-            {"t": "조립 경험이 많은 지인에게 연락해 조언을 구한다.", "w": {"Sup": 10, "Nat": 5}}
-        ]
+# --- 1. 39개 전문화 8차원 정밀 좌표 DB (0~100 스케일) ---
+# 실제 배포 시 39개 전체를 이 정규화된 수치로 채워넣으시면 변별력이 극대화됩니다.
+if 'specs' not in st.session_state:
+    st.session_state.specs = {
+        "보호 성기사": {"Res": 90, "Sup": 40, "Dist": -40, "Log": 50, "Agg": 30, "Nat": 10, "Ord": 95, "Shd": 10},
+        "복원 주술사": {"Res": 30, "Sup": 90, "Dist": 60, "Log": 50, "Agg": 10, "Nat": 95, "Ord": 30, "Shd": 10},
+        "수양 사제": {"Res": 40, "Sup": 70, "Dist": 50, "Log": 95, "Agg": 10, "Nat": 10, "Ord": 70, "Shd": 60},
+        "분노 전사": {"Res": 20, "Sup": 10, "Dist": -95, "Log": 20, "Agg": 95, "Nat": 30, "Ord": 10, "Shd": 30},
+        "비전 마법사": {"Res": 10, "Sup": 10, "Dist": 95, "Log": 90, "Agg": 50, "Nat": 10, "Ord": 80, "Shd": 30},
+        "혈기 죽음의 기사": {"Res": 95, "Sup": 10, "Dist": -50, "Log": 30, "Agg": 70, "Nat": 10, "Ord": 30, "Shd": 90},
+        "조화 드루이드": {"Res": 20, "Sup": 50, "Dist": 90, "Log": 80, "Agg": 40, "Nat": 95, "Ord": 50, "Shd": 20},
+        "양조 수도사": {"Res": 80, "Sup": 50, "Dist": -30, "Log": 60, "Agg": 40, "Nat": 80, "Ord": 50, "Shd": 30},
+        "파괴 흑마법사": {"Res": 20, "Sup": 10, "Dist": 90, "Log": 70, "Agg": 90, "Nat": 10, "Ord": 40, "Shd": 85},
+        # ... 나머지 30개 전문화도 위와 같은 0~100 스케일로 확장 가능
     }
-    # [이후 Q20까지 동일한 구조로 질문을 확장하여 배치합니다]
+
+# --- 2. 20개 정밀 질문지 ---
+questions = [
+    {
+        "q": "Q1. 팀의 성과에 대해 외부의 거센 비판이 쏟아지는 상황입니다. 당신은?",
+        "options": [
+            {"t": "비판의 화살을 직접 맞으며 팀원들을 보호한다.", "w": {"Res": 15, "Ord": 5}},
+            {"t": "흔들리는 팀원들의 마음을 먼저 다독이고 안심시킨다.", "w": {"Sup": 15, "Nat": 5}},
+            {"t": "말보다 행동으로, 문제가 된 지점을 즉각 수정한다.", "w": {"Agg": 15, "Dist": -10}},
+            {"t": "비판의 논리적 허점을 분석해 대응 전략을 수립한다.", "w": {"Log": 15, "Dist": 10}}
+        ]
+    },
+    {
+        "q": "Q2. 준비한 계획이 예상치 못한 변수로 완전히 엉망이 되었습니다. 당신은?",
+        "options": [
+            {"t": "검증된 매뉴얼이나 사례를 대조하며 원칙대로 복구한다.", "w": {"Ord": 15, "Res": 5}},
+            {"t": "주변 의견을 듣고 모두가 납득할 합의점을 찾는다.", "w": {"Nat": 15, "Sup": 5}},
+            {"t": "지체 없이 현장에 뛰어들어 가장 빠른 돌파구를 만든다.", "w": {"Agg": 15, "Dist": -10}},
+            {"t": "인과관계를 파악하여 가장 효율적인 새 경로를 재설계한다.", "w": {"Log": 15, "Dist": 10}}
+        ]
+    },
+    # Q3 ~ Q20 질문 데이터 (생략, 실제 배포 시 질문을 추가하여 20개 구성)
 ]
 
-# --- 3. 세션 상태 초기화 ---
+# --- 3. 세션 상태 관리 ---
 if 'step' not in st.session_state:
     st.session_state.step = 0
-    st.session_state.u = {"Res": 0, "Sup": 0, "Dist": 0, "Log": 0, "Agg": 0, "Nat": 0, "Ord": 0, "Shd": 0}
+    st.session_state.u = {k: 0 for k in ["Res", "Sup", "Dist", "Log", "Agg", "Nat", "Ord", "Shd"]}
     st.session_state.history = []
     st.session_state.finished = False
 
-# --- 4. 핵심 분석 함수 ---
 def get_rankings():
-    user_vec = st.session_state.u
-    rankings = []
-    for name, target_vec in SPECS_DB.items():
-        # 8차원 유클리드 거리 계산: d = sqrt(sum((u_i - t_i)^2))
-        dist = math.sqrt(sum([(user_vec.get(k, 0) - target_vec.get(k, 0))**2 for k in user_vec.keys()]))
-        rankings.append({"name": name, "dist": dist})
-    rankings.sort(key=lambda x: x['dist'])
-    return rankings
+    u_vec = st.session_state.u
+    ranks = []
+    for name, p_vec in st.session_state.specs.items():
+        # 8차원 유클리드 거리 계산
+        d = math.sqrt(sum([(u_vec.get(k, 0) - p_vec.get(k, 0))**2 for k in u_vec.keys()]))
+        ranks.append({"name": name, "dist": d})
+    return sorted(ranks, key=lambda x: x['dist'])
 
-# --- 5. UI 구성 ---
-st.set_page_config(page_title="아제로스 자아 분석기", layout="centered")
-st.title("🛡️ 아제로스 영혼의 자아 분석")
+# --- 4. 메인 분석 화면 ---
+st.title("🧪 아제로스 영혼의 자아 정밀 분석")
 
 if not st.session_state.finished:
-    # 진행도 및 수렴 지표 표시
-    rankings = get_rankings()
-    margin = rankings[1]['dist'] - rankings[0]['dist']
+    # 실시간 랭킹 및 마진 계산
+    current_ranks = get_rankings()
+    top1, top2 = current_ranks[0], current_ranks[1]
+    margin = top2['dist'] - top1['dist']
     
-    # 조기 종료 조건 (질문 5개 이상 & 1-2위 거리 차이가 10 이상)
-    if (margin > 10.0 and st.session_state.step >= 5) or st.session_state.step >= len(QUESTIONS):
+    # [마진 60 기반 조기 종료 로직]
+    target_margin = 60.0
+    if (st.session_state.step >= 5 and margin > target_margin) or st.session_state.step >= len(questions):
         st.session_state.finished = True
         st.rerun()
 
-    # 질문 출력
-    q_data = QUESTIONS[st.session_state.step]
-    st.progress(st.session_state.step / len(QUESTIONS))
-    st.subheader(f"{q_data['q']}")
+    q_data = questions[st.session_state.step]
+    st.write(f"**진행 단계: {st.session_state.step + 1} / {len(questions)}**")
+    st.progress((st.session_state.step + 1) / len(questions))
+    st.caption(f"현재 분석 정밀도(Margin): {margin:.2f} / {target_margin}")
 
+    st.subheader(q_data['q'])
     for i, opt in enumerate(q_data['options']):
-        if st.button(f"{opt['t']}", key=f"opt_{i}", use_container_width=True):
-            # 가중치 기록 및 상태 업데이트
+        if st.button(opt['t'], key=f"btn_{st.session_state.step}_{i}", use_container_width=True):
             st.session_state.history.append(opt['w'])
             for k, v in opt['w'].items():
                 st.session_state.u[k] += v
             st.session_state.step += 1
             st.rerun()
 
-    # 제어 버튼
     st.divider()
-    c1, c2, c3 = st.columns(3)
+    c1, c2 = st.columns(2)
     if c1.button("⬅️ 이전 단계") and st.session_state.step > 0:
-        last_w = st.session_state.history.pop()
-        for k, v in last_w.items():
-            st.session_state.u[k] -= v
+        prev_w = st.session_state.history.pop()
+        for k, v in prev_w.items(): st.session_state.u[k] -= v
         st.session_state.step -= 1
         st.rerun()
     if c2.button("🔄 처음부터"):
-        for k in st.session_state.keys(): del st.session_state[k]
+        for k in list(st.session_state.keys()): del st.session_state[k]
         st.rerun()
-    if c3.button("🚪 종료"):
-        st.stop()
 
-# --- 6. 결과 리포트 ---
+# --- 5. 결과 리포트 (심층 분석 포함) ---
 else:
+    final_ranks = get_rankings()
+    top1 = final_ranks[0]
+    top2 = final_ranks[1]
+    
     st.balloons()
-    final_rank = get_rankings()
-    top1 = final_rank[0]
-    top2 = final_rank[1]
-
-    st.success("✅ 당신의 성향이 특정 자아로 완전히 수렴되었습니다!")
-    st.header(f"🏆 최종 메인 자아: {top1['name']}")
-    st.write(f"💡 추천 대안: {top2['name']}")
+    st.header(f"🏆 최종 결과: [{top1['name']}]")
+    st.subheader(f"💡 추천 대안: {top2['name']}")
     
-    # 성향 차트 대용 텍스트 분석
     st.divider()
-    st.subheader("📊 심층 성향 데이터")
-    u = st.session_state.u
-    if u['Log'] > u['Agg']:
-        st.write("- 당신은 본능보다 **논리적 전략**이 앞서는 타입입니다.")
-    else:
-        st.write("- 당신은 계산보다 **직관적 실행력**이 앞서는 타입입니다.")
+    st.subheader("🧐 분석 근거 (Decision Log)")
     
+    # 사용자의 가장 높은 성향 지표 추출
+    u = st.session_state.u
+    top_traits = sorted(u.items(), key=lambda x: x[1], reverse=True)[:2]
+    
+    st.write(f"당신의 답변에서 가장 두드러진 성향은 **{top_traits[0][0]}**와(과) **{top_traits[1][0]}**입니다.")
+    
+    # 결과 해석 로직 (수학적 가중치 기반)
+    if top_traits[0][0] == "Res" or top_traits[0][0] == "Ord":
+        st.write(f"> 당신은 위기 상황에서 **책임감(Res)**과 **질서(Ord)**를 최우선으로 선택했습니다. 이는 스스로를 통제하며 팀을 지탱하는 **{top1['name']}**의 기질과 완벽히 일치합니다.")
+    elif top_traits[0][0] == "Sup" or top_traits[0][0] == "Nat":
+        st.write(f"> 당신은 조화로운 **협력(Sup)**과 **유연함(Nat)**을 중시하는 선택을 내렸습니다. 이는 주변을 보살피는 **{top1['name']}**의 에너지와 공명합니다.")
+    elif top_traits[0][0] == "Agg" or top_traits[0][0] == "Log":
+        st.write(f"> 당신은 날카로운 **분석력(Log)** 혹은 거침없는 **추진력(Agg)**을 바탕으로 문제를 해결하려 합니다. 이러한 '해결사'적 면모가 결과에 큰 영향을 주었습니다.")
+    
+    st.info(f"이 결과는 총 {st.session_state.step}개의 문항을 통해 당신의 8차원 좌표를 분석한 결과이며, 2위인 {top2['name']}와는 약 {top2['dist'] - top1['dist']:.1f}점의 거리 차이가 발생하여 충분한 변별력이 확보되었습니다.")
+
     if st.button("🔄 다시 테스트하기"):
-        for k in st.session_state.keys(): del st.session_state[k]
+        for k in list(st.session_state.keys()): del st.session_state[k]
         st.rerun()
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
