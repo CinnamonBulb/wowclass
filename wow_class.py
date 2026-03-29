@@ -200,7 +200,7 @@ QUESTIONS = [
 {
         "q": "Q18. 거대한 조직이나 회사에서 당신의 능력을 인정해 '단 하나의 특별한 권한(포지션)'을 주겠다고 합니다. 어떤 역할을 고르시겠습니까?",
         "opts": [
-            {"w": {"Dist":10, "Agg":6, "Des":4}, "t": "사람들과 거리를 둔 채, 낡은 관행이나 경쟁사를 가차 없이 타격하고 해체해버리는 파괴적인 혁신가"}, 
+            {"w": {"Dist":10, "Agg":6, "Des":4}, "t": "사람들과 거리를 둔 채, 낡은 관행이나 경쟁사를 가차 없이 갈아엎거나 해체해버리는 파괴적인 혁신가"}, 
             {"w": {"Ord":10, "Res":6, "Pac":4}, "t": "오랜 시간을 인내하며, 외부의 어떤 위기나 공격에도 흔들리지 않도록 조직의 견고한 방어선과 규율을 확립하는 관리자"}, 
             {"w": {"Log":10, "Nat":6, "Cpx":4}, "t": "시장의 자연스러운 흐름을 분석하고, 고도로 복잡한 데이터와 변수들을 정교하게 엮어 마스터플랜을 짜는 전략가"}, 
             {"w": {"Shd":10, "Sup":6, "Mob":4}, "t": "스포트라이트가 비치지 않는 음지에서 발 빠르게 움직이며, 남들이 꺼리는 궂은일을 앞장서 처리해 팀을 돕는 해결사"}
@@ -396,7 +396,7 @@ else:
 
     st.divider()
     st.markdown(f'<div class="class-header" style="font-size:1.4rem;">🥈 2위 추천 직업: <b>{top2["class"]}</b></div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="spec-header" style="font-size:1rem; color:#cbd5e1;">💡 대안 전문화: <b>{top2["spec"]}</b></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="spec-header" style="font-size:1rem; color:#cbd5e1;">💡 추천 전문화: <b>{top2["spec"]}</b></div>', unsafe_allow_html=True)
     st.markdown(f'<div class="result-card">{SPEC_DESC.get(top2["spec"],"")}</div>', unsafe_allow_html=True)
 
     st.divider()
